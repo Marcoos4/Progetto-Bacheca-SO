@@ -1,0 +1,28 @@
+ID: 1
+Author: pippo
+Timestamp: Sat Sep 20 15:06:06 2025
+Subject: Visita
+Body:
+A che ora e' l'appuntamento domani?
+===END===
+ID: 2
+Author: pippo
+Timestamp: Sat Sep 20 17:06:41 2025
+Subject: Uscita
+Body:
+Sta sera siamo io e Marco ci raggiungi?
+===END===
+ID: 3
+Author: pippo
+Timestamp: Thu Sep 18 17:07:06 2025
+Subject: Boh ;)
+Body:
+Che fai?
+===END===
+ID: 4
+Author: Marco
+Timestamp: Fri Sep 20 16:22:38 2024
+Subject: Tonight
+Body:
+Ciao che fate sta sera?
+===END===
