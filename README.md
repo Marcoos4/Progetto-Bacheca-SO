@@ -48,7 +48,7 @@ Di seguito sono riportate le istruzioni passo-passo per compilare ed eseguire l'
 
 ### Compilazione
 
-1.  Clona il repository (o posizionati nella directory `src` del progetto).
+1.  Clona il repository (posizionati nella directory `src` del progetto).
 2.  Esegui il comando `make all` dalla directory principale (`src`).
     ```
     make all
@@ -105,4 +105,5 @@ Una volta effettuato l'accesso, il menu si trasformerà:
 4. Esci dal programma
 Scelta:
 ```
+
 
