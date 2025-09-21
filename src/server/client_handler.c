@@ -14,6 +14,28 @@ extern volatile sig_atomic_t active_client_count;
 extern pthread_mutex_t client_m;
 
 
+/**
+ * @brief Funzione eseguita da ogni thread per gestire un singolo client.
+ * 
+ * @param client_socket_ptr Puntatore al file descriptor del socket del client.
+ * @return NULL
+ * 
+ * Questa è la funzione principale per l'interazione con un client. Opera in un ciclo,
+ * attendendo e processando i pacchetti inviati dal client.
+ * 
+ * Il ciclo principale:
+ * 1. Attende la ricezione di un `packet_header` usando `recv_all` per garantire
+ *    la lettura completa dell'header.
+ * 2. Se l'header indica la presenza di un payload (`header.length > 0`), legge
+ *    l'intero payload in un buffer.
+ * 3. Utilizza uno `switch` sul `header.type` per determinare l'azione richiesta dal client.
+ * 4. Gestisce la logica per ogni tipo di richiesta (registrazione, login, invio/lettura/cancellazione
+ *    messaggi, logout), mantenendo lo stato di autenticazione del client.
+ * 5. Invia risposte di stato appropriate al client.
+ * 
+ * La funzione termina quando `recv_all` fallisce (es. il client si disconnette),
+ * chiude il socket, e decrementa il contatore globale dei client attivi in modo thread-safe.
+ */
 void* handle_client(void* client_socket_ptr) { 
     int sock = *(int*)client_socket_ptr;
     free(client_socket_ptr);
@@ -21,7 +43,8 @@ void* handle_client(void* client_socket_ptr) {
     char buffer[2048] = {0};
     packet_header header;
     bool auth = false;
-    char curr_user[MAX_USERNAME_LEN] = {0}; // 
+    char curr_user[MAX_USERNAME_LEN] = {0}; 
+
     while (recv_all(sock, &header, sizeof(header)) == 0) {
         memset(buffer, 0, sizeof(buffer));
         if (header.length > 0) {
@@ -36,11 +59,13 @@ void* handle_client(void* client_socket_ptr) {
         switch (header.type) {
             case C_REGISTER: 
             case C_LOGIN: {
+                // Estrae username e password dal payload.
+                // Il formato atteso è "username\0password\0".
                 char* user = buffer;
                 char* pass = (char*)memchr(buffer, '\0', header.length);
 
                 if (pass && (pass + 1 < buffer + header.length)) {
-                    pass++;
+                    pass++; // Salta il terminatore nullo dell'username
                     if (header.type == C_REGISTER) {
                         if (register_user(user, pass)) {
                             status(sock, REG_SUCCESS);
@@ -76,6 +101,8 @@ void* handle_client(void* client_socket_ptr) {
                     status(sock, UNAUTHORIZED);
                     break;
                 }
+                // Estrae oggetto e corpo dal payload.
+                // Il formato atteso è "oggetto\0corpo".
                 char* subject = buffer;
                 char* body = (char*)memchr(buffer, '\0', header.length);
                 if (body && (body + 1 < buffer + header.length)) {

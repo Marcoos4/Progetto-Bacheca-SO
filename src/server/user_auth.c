@@ -8,6 +8,16 @@
 
 pthread_mutex_t user_mutex;
 
+/**
+ * @brief Calcola l'hash di una password utilizzando l'algoritmo djb2.
+ * 
+ * @param password La password in chiaro.
+ * @param hashed_password Buffer di output per la password hashata (come stringa).
+ * @param size La dimensione del buffer di output.
+ * 
+ * L'algoritmo djb2 è un semplice ma efficace algoritmo di hashing non crittografico.
+ * Il risultato è un valore numerico che viene poi convertito in stringa.
+ */
 void hash_password(const char *password, char *hashed_password, size_t size) {
     unsigned long hash = 5381;
     int c;
@@ -17,6 +27,22 @@ void hash_password(const char *password, char *hashed_password, size_t size) {
     snprintf(hashed_password, size, "%lu", hash);
 }
 
+/**
+ * @brief Registra un nuovo utente nel sistema.
+ * 
+ * @param username Il nome utente da registrare.
+ * @param password La password in chiaro dell'utente.
+ * @return `true` se la registrazione ha successo, `false` altrimenti (es. utente già esistente).
+ * 
+ * La funzione esegue i seguenti passaggi in modo thread-safe:
+ * 1. Calcola l'hash della password.
+ * 2. Acquisisce un mutex (`user_mutex`) per garantire l'accesso esclusivo al file degli utenti.
+ * 3. Controlla se l'utente esiste già leggendo il file `users.txt`.
+ * 4. Se l'utente non esiste, lo aggiunge in append al file.
+ * 5. Rilascia il mutex.
+ * Questo previene race condition nel caso in cui più client tentino di registrarsi
+ * contemporaneamente con lo stesso username.
+ */
 bool register_user(const char *username, const char *password) {
     char hashed_password[64];
     hash_password(password, hashed_password, sizeof(hashed_password));
@@ -59,6 +85,22 @@ bool register_user(const char *username, const char *password) {
     return true; 
 }
 
+/**
+ * @brief Autentica un utente confrontando username e password.
+ * 
+ * @param username Il nome utente da autenticare.
+ * @param password La password in chiaro fornita.
+ * @return `true` se l'autenticazione ha successo, `false` altrimenti.
+ * 
+ * La funzione esegue i seguenti passaggi in modo thread-safe:
+ * 1. Calcola l'hash della password fornita.
+ * 2. Acquisisce un mutex (`user_mutex`) per leggere in sicurezza il file degli utenti.
+ * 3. Scorre il file `users.txt` e confronta l'username e l'hash della password
+ *    con quelli memorizzati.
+ * 4. Rilascia il mutex.
+ * Il mutex è necessario per evitare che un altro thread stia modificando il file
+ * (es. durante una registrazione) mentre questo lo sta leggendo.
+ */
 bool authenticate_user(const char *username, const char *password) {
     char hashed_password[64];
     hash_password(password, hashed_password, sizeof(hashed_password));

@@ -28,6 +28,24 @@ typedef struct thread_pool
 } thread_pool;
 
 
+/**
+ * @brief Funzione eseguita da ogni thread lavoratore del pool.
+ * 
+ * @param arg Puntatore alla struttura `thread_pool`.
+ * @return NULL
+ * 
+ * Questa funzione implementa il ciclo di vita di un thread lavoratore.
+ * 1. Entra in un ciclo infinito.
+ * 2. Acquisisce il lock sulla coda dei task.
+ * 3. Attende su una variabile di condizione (`pthread_cond_wait`) finché la coda
+ *    non contiene un task o non viene richiesta la chiusura del pool. L'attesa
+ *    rilascia atomicamente il mutex e lo riacquisisce al risveglio.
+ * 4. Se viene richiesta la chiusura e la coda è vuota, il thread esce dal ciclo.
+ * 5. Estrae un task (un client) dalla testa della coda.
+ * 6. Rilascia il lock sulla coda.
+ * 7. Esegue la funzione associata al task (es. `handle_client`).
+ * 8. Libera la memoria allocata per la struttura del task.
+ */
 void* client_handler(void* arg) {
     thread_pool* pool = (thread_pool*)arg;
     while (1) {
@@ -55,6 +73,16 @@ void* client_handler(void* arg) {
     return NULL;
 }
 
+/**
+ * @brief Crea e inizializza un nuovo thread pool.
+ * 
+ * @param num_threads Il numero di thread da creare nel pool.
+ * @return Un puntatore al `thread_pool` creato, o NULL in caso di errore.
+ * 
+ * La funzione alloca la memoria per la struttura del pool, inizializza la coda
+ * dei task (con il suo mutex e la variabile di condizione), e crea i thread
+ * lavoratori, ognuno dei quali eseguirà la funzione `client_handler`.
+ */
 thread_pool* thread_pool_create(size_t num_threads) {
     thread_pool* pool = malloc(sizeof(thread_pool));
     if (!pool) return NULL;
@@ -79,6 +107,21 @@ thread_pool* thread_pool_create(size_t num_threads) {
     return pool;
 }
 
+/**
+ * @brief Aggiunge un nuovo task alla coda del thread pool.
+ * 
+ * @param pool Il thread pool a cui aggiungere il task.
+ * @param function La funzione che il thread deve eseguire.
+ * @param arg L'argomento da passare alla funzione.
+ * 
+ * La funzione, in modo thread-safe:
+ * 1. Alloca un nuovo nodo `client` per rappresentare il task.
+ * 2. Acquisisce il lock sulla coda.
+ * 3. Aggiunge il nuovo task in coda (FIFO).
+ * 4. Segnala (`pthread_cond_signal`) a uno dei thread in attesa che c'è un
+ *    nuovo task disponibile.
+ * 5. Rilascia il lock.
+ */
 void add_task(thread_pool* pool, void* (*function)(void*), void* arg) {
     if (!pool || pool->close_requested) {
 
@@ -109,6 +152,22 @@ void add_task(thread_pool* pool, void* (*function)(void*), void* arg) {
     pthread_mutex_unlock(&pool->client_queue.mutex);
 }
 
+/**
+ * @brief Distrugge il thread pool, liberando tutte le risorse.
+ * 
+ * @param pool Il thread pool da distruggere.
+ * 
+ * Questo processo di chiusura è delicato e deve essere gestito correttamente:
+ * 1. Acquisisce il lock e imposta il flag `close_requested`.
+ * 2. Usa `pthread_cond_broadcast` per risvegliare *tutti* i thread in attesa,
+ *    informandoli della richiesta di chiusura.
+ * 3. Rilascia il lock.
+ * 4. Usa `pthread_join` per attendere la terminazione di ogni thread lavoratore.
+ * 5. Libera la memoria di eventuali task rimasti nella coda (anche se in una
+ *    chiusura normale la coda dovrebbe essere vuota).
+ * 6. Distrugge il mutex e la variabile di condizione.
+ * 7. Libera la memoria allocata per l'array di thread e per la struttura del pool.
+ */
 void pool_destroy(thread_pool* pool) {
     pthread_mutex_lock(&pool->client_queue.mutex);
     pool->close_requested = 1;

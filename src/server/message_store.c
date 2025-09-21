@@ -57,6 +57,21 @@ void message_store_shutdown() {
     pthread_mutex_destroy(&message_array.mutex);
 }
 
+/**
+ * @brief Aggiunge un nuovo messaggio all'array dei messaggi.
+ * 
+ * @param author L'autore del messaggio.
+ * @param subject L'oggetto del messaggio.
+ * @param body Il corpo del messaggio.
+ * 
+ * La funzione è thread-safe grazie all'uso di un mutex.
+ * 1. Acquisisce il lock sull'array dei messaggi.
+ * 2. Se l'array è pieno, ne raddoppia la capacità.
+ * 3. Crea un nuovo messaggio, assegnandogli un ID univoco e un timestamp corrente.
+ * 4. Copia i dati (autore, oggetto, corpo) nel nuovo messaggio.
+ * 5. Incrementa la dimensione dell'array.
+ * 6. Rilascia il lock.
+ */
 void add_message(const char* author, const char* subject, const char* body) {
     pthread_mutex_lock(&message_array.mutex);
     if (message_array.size == message_array.capacity) {
@@ -106,14 +121,29 @@ void add_message(const char* author, const char* subject, const char* body) {
     pthread_mutex_unlock(&message_array.mutex);
 }
 
+/**
+ * @brief Cancella un messaggio dall'array.
+ * 
+ * @param message_id L'ID del messaggio da cancellare.
+ * @param current_user L'utente che richiede la cancellazione.
+ * @return 0 in caso di successo, -1 se l'utente non è autorizzato, -2 se il messaggio non è stato trovato.
+ * 
+ * La funzione, in modo thread-safe:
+ * 1. Cerca il messaggio con l'ID specificato.
+ * 2. Verifica che `current_user` sia l'autore del messaggio.
+ * 3. Se autorizzato, rimuove il messaggio dall'array compattando gli elementi successivi.
+ *    Questa operazione è O(N) dove N è il numero di messaggi dopo quello cancellato.
+ * 4. Libera la memoria allocata per il corpo e il timestamp del messaggio.
+ */
 int delete_message(uint32_t message_id, const char* current_user) {
     pthread_mutex_lock(&message_array.mutex);
     int found_index = -1;
     for (size_t i = 0; i < message_array.size; i++) {
         if (message_array.messages[i].id == message_id) {
+            // Controllo di autorizzazione: solo l'autore può cancellare.
             if (strcmp(message_array.messages[i].author, current_user) != 0) {
                 pthread_mutex_unlock(&message_array.mutex);
-                return -1;
+                return -1; // Non autorizzato
             }
             found_index = i;
             break;
@@ -122,20 +152,40 @@ int delete_message(uint32_t message_id, const char* current_user) {
 
     if (found_index == -1) {
         pthread_mutex_unlock(&message_array.mutex);
-        return -2;
+        return -2; // Non trovato
     }
 
     free(message_array.messages[found_index].body);
     free(message_array.messages[found_index].timestamp);
     
+    // Compatta l'array per rimuovere il messaggio.
     for (size_t i = found_index; i < message_array.size - 1; i++) {
         message_array.messages[i] = message_array.messages[i + 1];
     }
     message_array.size--;
     pthread_mutex_unlock(&message_array.mutex);
-    return 0;
+    return 0; // Successo
 }
 
+/**
+ * @brief Invia l'intera bacheca, ordinata per data, a un client.
+ * 
+ * @param sock Il socket del client a cui inviare la bacheca.
+ * 
+ * Questa funzione è una delle più complesse:
+ * 1. Acquisisce il lock per garantire una visione consistente della bacheca.
+ * 2. Se non ci sono messaggi, invia un pacchetto `END_BOARD` e termina.
+ * 3. Crea un array di puntatori ai messaggi per poterli ordinare senza spostare
+ *    i dati originali.
+ * 4. Esegue un **Bubble Sort** sull'array di puntatori basandosi sul timestamp.
+ *    `strptime` e `mktime` sono usati per convertire le stringhe di timestamp in `time_t`
+ *    comparabili.
+ * 5. Itera sui messaggi ordinati e li formatta in un buffer. Per migliorare la
+ *    leggibilità, raggruppa i messaggi per giorno, stampando un'intestazione di data
+ *    solo quando la data cambia.
+ * 6. Invia ogni messaggio formattato come un pacchetto separato al client.
+ * 7. Alla fine, invia un pacchetto `END_BOARD` per segnalare la fine della trasmissione.
+ */
 void get_board(int sock) {
     pthread_mutex_lock(&message_array.mutex);
 
@@ -220,6 +270,20 @@ void get_board(int sock) {
     pthread_mutex_unlock(&message_array.mutex);
 }
 
+/**
+ * @brief Salva tutti i messaggi in memoria su un file di testo.
+ * 
+ * Il formato di salvataggio è strutturato per essere facilmente parsabile:
+ * ID: <id>
+ * Author: <autore>
+ * Timestamp: <timestamp>
+ * Subject: <oggetto>
+ * Body:
+ * <corpo del messaggio, può essere multi-riga>
+ * ===END===
+ * 
+ * Questa funzione viene chiamata durante lo shutdown del server per garantire la persistenza.
+ */
 void save_messages() {
     FILE* file = fopen(filename, "w");
     if (!file) {
@@ -250,6 +314,18 @@ void save_messages() {
     fclose(file);
 }
 
+/**
+ * @brief Carica i messaggi da un file di testo in memoria all'avvio del server.
+ * 
+ * La funzione è uno state machine che parsa il file `messages.txt`.
+ * 1. Legge il file riga per riga.
+ * 2. Usa `sscanf` e `strncmp` per identificare i campi (ID, Author, etc.).
+ * 3. Quando incontra "Body:", entra in una modalità speciale (`in_body = true`)
+ *    in cui accumula tutte le righe successive in un buffer dinamico fino a
+ *    quando non incontra il delimitatore "===END===".
+ * 4. Una volta letto un messaggio completo, lo aggiunge all'array `message_array`.
+ * 5. Tiene traccia dell'ID più alto per impostare correttamente `next_id`.
+ */
 void load_messages() {
     FILE* file = fopen(filename, "r");
     if (!file) {

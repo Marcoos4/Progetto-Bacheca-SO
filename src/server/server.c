@@ -46,7 +46,6 @@ int main() {
     sigset_t signal_mask;
 
     sigfillset(&signal_mask);
-    
     sigdelset(&signal_mask, SIGINT);
     if (pthread_sigmask(SIG_BLOCK, &signal_mask, NULL) != 0) {
         perror("Errore nell'impostare la maschera dei segnali");
@@ -61,8 +60,10 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
+    // Registra la funzione di cleanup per essere eseguita all'uscita.
     atexit(cleanup);
 
+    // Crea la directory 'data' se non esiste.
     if (mkdir("data", 0755) == -1) {
         if (errno != EEXIST) {
             perror("Impossibile creare la directory 'data'");
@@ -112,7 +113,7 @@ int main() {
 
     while (1) {
         if ((new_socket = accept(server_fd, (struct sockaddr *)&address, &addrlen)) < 0) {
-            if (errno == EINTR) continue; 
+            if (errno == EINTR) continue;
             perror("Accept fallita");
             continue;
         }

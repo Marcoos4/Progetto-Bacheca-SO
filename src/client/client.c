@@ -15,7 +15,6 @@ int main(int argc, char const *argv[]) {
     sa.sa_handler = SIG_IGN;
     sigfillset(&sa.sa_mask); 
     sa.sa_flags = 0;
-    
     if (sigaction(SIGINT, &sa, NULL) == -1) {
         perror("Impossibile ignorare SIGINT");
     }
