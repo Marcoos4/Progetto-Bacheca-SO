@@ -1,4 +1,4 @@
-### Marco Zirilli 0344185 ###
+### Marco Zirilli ###
 
 # Progetto: Bacheca Elettronica
 
@@ -105,3 +105,4 @@ Una volta effettuato l'accesso, il menu si trasformerà:
 4. Esci dal programma
 Scelta:
 ```
+
