@@ -23,9 +23,9 @@ Il **server** è il cuore del sistema: gestisce le connessioni dei client, l'aut
 ### Specifiche utilizzate
 
 -   **Linguaggio C:** Linguaggio utilizzato durante il corso di SO.
--   **Socket TCP/IP:** È stato scelto TCP come protocollo di trasporto per la sua natura affidabile e orientata alla connessione. Garantisce che i dati arrivino a destinazione senza errori e nello stesso ordine di invio.
--   **Pthreads e Thread Pool:** Per gestire la concorrenza, si è optato per un'implementazione custom di un thread pool. Questo modello è più efficiente e scalabile rispetto all'approccio "un thread per client", poiché riutilizza un numero fisso di thread.
--   **Persistenza su File di Testo:** Si è scelto di salvare i dati su semplici file di testo, privilegiando la semplicità, la portabilità e la trasparenza.
+-   **Socket TCP/IP:** È stato scelto TCP come protocollo di trasporto per la sua natura affidabile. Garantisce che i dati arrivino a destinazione senza errori e nello stesso ordine di invio.
+-   **Pthreads e Thread Pool:** Per gestire la concorrenza, si è optato per un'implementazione custom di un thread pool. Questo modello è più efficiente e scalabile rispetto all'approccio "un thread per client", poiché riutilizza un numero fisso di thread(versione online supporta 10 connessioni).
+-   **Persistenza su File di Testo:** Si è scelto di salvare i dati su file di testo, privilegiando la semplicità, la portabilità e la trasparenza.
 
 ### Difficoltà affrontate e soluzioni
 
@@ -36,7 +36,7 @@ Il **server** è il cuore del sistema: gestisce le connessioni dei client, l'aut
 ### Funzionalità future
 
 -   **Sicurezza Avanzata:** Integrare algoritmi di hashing più avanzati.
--   **Funzionalità Utente:** Aggiungere la possibilità di modificare i propri messaggi, inviare messaggi privati e creare profili utente.
+-   **Funzionalità Utente:** Aggiungere la possibilità di modificare i propri messaggi, inviare messaggi privati e creare profili utente più dettagliati.
 -   **Robustezza:** Implementare un sistema di journaling per garantire la durabilità dei dati.
 
 ---
@@ -105,5 +105,6 @@ Una volta effettuato l'accesso, il menu si trasformerà:
 4. Esci dal programma
 Scelta:
 ```
+
 
 
