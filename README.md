@@ -50,7 +50,7 @@ Di seguito sono riportate le istruzioni passo-passo per compilare ed eseguire l'
 
 1.  Clona il repository (posizionati nella directory `src` del progetto).
     ```
-    git clone
+    git clone https://github.com/Marcoos4/Progetto-Bacheca-SO.git
     ```
 3.  Esegui il comando `make all` dalla directory principale (`src`).
     ```
@@ -108,6 +108,7 @@ Una volta effettuato l'accesso, il menu si trasformerà:
 4. Esci dal programma
 Scelta:
 ```
+
 
 
 
