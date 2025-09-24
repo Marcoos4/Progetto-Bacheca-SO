@@ -44,15 +44,19 @@ Il **server** è il cuore del sistema: gestisce le connessioni dei client, l'aut
 ## Come installare ed eseguire il progetto
 
 Di seguito sono riportate le istruzioni passo-passo per compilare ed eseguire l'applicazione.
-*(Prerequisito: un sistema operativo POSIX-compatibile)*.
+*(Prerequisito: un sistema operativo POSIX-compatibile, gcc compiler)*.
 
 ### Compilazione
 
-1.  Clona il repository (posizionati nella directory `src` del progetto).
+1.  Clona il repository 
     ```
     git clone https://github.com/Marcoos4/Progetto-Bacheca-SO.git
     ```
-3.  Esegui il comando `make all` dalla directory principale (`src`).
+2. posizionati nella directory `src` del progetto
+    ```
+    cd src
+    ```
+4.  Esegui il comando `make all` dalla directory principale (`src`).
     ```
     make all
     ```
@@ -108,6 +112,7 @@ Una volta effettuato l'accesso, il menu si trasformerà:
 4. Esci dal programma
 Scelta:
 ```
+
 
 
 
