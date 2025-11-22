@@ -33,17 +33,17 @@ It runs on all **POSIX-compatible systems**.
 
 ## 🧩 **Architecture Overview**
 
-### 📦 Memory & Persistence
+### Memory & Persistence
 
 * All messages and user data are stored in **text files**, ensuring persistence.
 * Server state is preserved through graceful shutdown.
 
-### 🧵 Thread Pool
+### Thread Pool
 
 * A fixed number of worker threads manage tasks concurrently.
 * This avoids the inefficient “one thread per client” model.
 
-### 🌐 Network Communication
+### Network Communication
 
 * Uses reliable **TCP/IP sockets**
 * Custom `send_all()` and `recv_all()` ensure complete data transfer
@@ -53,25 +53,25 @@ It runs on all **POSIX-compatible systems**.
 
 ## 🗺️ **Main Components**
 
-### 🖥️ **1. Server**
+### **1. Server**
 
 * Accepts client connections
 * Authenticates/registers users
 * Stores and retrieves messages
 * Protects shared resources using mutexes
 
-### 💬 **2. Client**
+### **2. Client**
 
 * Text-based menu-driven UI
 * Reads/posts/deletes messages
 * Connects to a local or remote server
 
-### 🧵 **3. Thread Pool**
+### **3. Thread Pool**
 
 * Fixed-size set of worker threads
 * Efficient scheduling of client tasks
 
-### 💾 **4. Persistent Storage**
+### **4. Persistent Storage**
 
 * Messages saved in chronological order
 * User data saved in dedicated files
@@ -80,25 +80,25 @@ It runs on all **POSIX-compatible systems**.
 
 ## 🧮 **Functional Logic**
 
-### 🏗️ Message Posting
+### Message Posting
 
 Client sends text → server stores it chronologically.
 
-### 📜 Reading Messages
+### Reading Messages
 
 Client fetches entire message list.
 
-### 🗑️ Message Deletion
+### Message Deletion
 
 Users may delete **only their own** messages.
 
-### 🔐 Authentication
+### Authentication
 
 Simple and secure login system using username and password.
 
 ---
 
-## ⚡ **Optimization Strategies**
+## **Optimization Strategies**
 
 * Thread pool improves scalability
 * Compact I/O routines reduce network overhead
@@ -107,7 +107,7 @@ Simple and secure login system using username and password.
 
 ---
 
-## 🧪 **Testing**
+## **Testing**
 
 The system has been validated for:
 
@@ -126,7 +126,7 @@ make
 
 ---
 
-## 🧱 **Example Client Interface**
+## **Example Client Interface**
 
 ```
 --- Main Menu ---
@@ -185,17 +185,17 @@ Compatibile con tutti i sistemi **POSIX**.
 
 ## 🧩 **Architettura del Sistema**
 
-### 📦 Memoria e Persistenza
+### Memoria e Persistenza
 
 * Tutti i messaggi e i dati utente sono salvati in **file di testo**.
 * Lo stato del server è sempre coerente grazie alla chiusura pulita.
 
-### 🧵 Thread Pool
+### Thread Pool
 
 * Un numero fisso di thread gestisce le richieste dei client.
 * Approccio più efficiente rispetto a un thread per client.
 
-### 🌐 Comunicazione di Rete
+### Comunicazione di Rete
 
 * Basata su **socket TCP**
 * Funzioni `send_all()` e `recv_all()` garantiscono trasferimenti completi
@@ -205,24 +205,24 @@ Compatibile con tutti i sistemi **POSIX**.
 
 ## 🗺️ **Componenti Principali**
 
-### 🖥️ **1. Server**
+### **1. Server**
 
 * Gestisce connessioni
 * Registra/autentica utenti
 * Memorizza i messaggi
 * Usa mutex per proteggere risorse critiche
 
-### 💬 **2. Client**
+### **2. Client**
 
 * Interfaccia a menu semplice e intuitiva
 * Visualizza/invia/cancella messaggi
 * Connessione locale o remota
 
-### 🧵 **3. Thread Pool**
+### **3. Thread Pool**
 
 * Gestione efficiente delle richieste concorrenti
 
-### 💾 **4. Persistenza**
+### **4. Persistenza**
 
 * Messaggi salvati in ordine cronologico
 * Dati utente salvati separatamente
@@ -231,25 +231,25 @@ Compatibile con tutti i sistemi **POSIX**.
 
 ## 🧮 **Funzionamento**
 
-### 🏗️ Pubblicazione dei Messaggi
+### Pubblicazione dei Messaggi
 
 Gli utenti inviano messaggi che vengono salvati in ordine cronologico.
 
-### 📜 Lettura dei Messaggi
+### Lettura dei Messaggi
 
 I client possono visualizzare la bacheca completa.
 
-### 🗑️ Eliminazione
+### Eliminazione
 
 Un utente può eliminare **solo i propri** messaggi.
 
-### 🔐 Autenticazione
+### Autenticazione
 
 Sistema basato su username e password.
 
 ---
 
-## ⚡ **Strategie di Ottimizzazione**
+## **Strategie di Ottimizzazione**
 
 * Thread pool per maggiore scalabilità
 * Persistenza tramite file semplice e robusta
@@ -258,7 +258,7 @@ Sistema basato su username e password.
 
 ---
 
-## 🧪 **Test e Validazione**
+## **Test e Validazione**
 
 Il sistema è stato testato per:
 
@@ -277,7 +277,7 @@ make
 
 ---
 
-## 🧱 **Esempio Interfaccia Client**
+## **Esempio Interfaccia Client**
 
 ```
 --- Menu Principale ---
@@ -306,6 +306,7 @@ Sviluppato per il corso di **Sistemi Operativi**, con focus su concorrenza, prog
 **Linguaggio:** C (POSIX)
 **Concorrenza:** Thread Pool
 **Protocollo:** TCP/IP
+
 
 
 
