@@ -1,117 +1,312 @@
 ### Marco Zirilli ###
 
-# Progetto: Bacheca Elettronica
+# 🧠 **Electronic Board — Multi-Client Message Board in C (POSIX)**
 
-## Descrizione del progetto
-
-Questa applicazione realizza un classico sistema di bacheca messaggi, dove più utenti possono connettersi simultaneamente per leggere e scrivere messaggi in un ambiente condiviso. Il progetto è stato sviluppato interamente in **C** ed è eseguibile su sistemi **POSIX**.
-
-### Cosa fa l'applicazione
-
-Il **server** è il cuore del sistema: gestisce le connessioni dei client, l'autenticazione degli utenti e la persistenza dei dati. I **client**, invece, forniscono un'interfaccia a riga di comando per permettere agli utenti di:
-
--   Registrare un nuovo account.
--   Accedere con le proprie credenziali.
--   Visualizzare tutti i messaggi sulla bacheca in ordine cronologico.
--   Pubblicare nuovi messaggi.
--   Cancellare i messaggi di cui sono autori.
+###  **Bacheca Elettronica Multi-Utente in C (POSIX)**
 
 ---
 
-## Specifiche e Scelte Implementative
-
-### Specifiche utilizzate
-
--   **Linguaggio C:** Linguaggio utilizzato durante il corso di SO.
--   **Socket TCP/IP:** È stato scelto TCP come protocollo di trasporto per la sua natura affidabile. Garantisce che i dati arrivino a destinazione senza errori e nello stesso ordine di invio.
--   **Pthreads e Thread Pool:** Per gestire la concorrenza, si è optato per un'implementazione custom di un thread pool. Questo modello è più efficiente e scalabile rispetto all'approccio "un thread per client", poiché riutilizza un numero fisso di thread(versione online supporta 10 connessioni).
--   **Persistenza su File di Testo:** Si è scelto di salvare i dati su file di testo, privilegiando la semplicità, la portabilità e la trasparenza.
-
-### Difficoltà affrontate e soluzioni
-
--   **Comunicazione di Rete Affidabile:** La principale sfida con TCP è la sua natura di "stream". Per superare questo ostacolo, sono state create le funzioni `send_all()` e `recv_all()`, che assicurano la trasmissione e la ricezione completa di ogni pacchetto.
--   **Gestione della Concorrenza:** L'accesso simultaneo di più thread a risorse condivise può portare a *race condition*. Questo problema è stato risolto utilizzando i **mutex** (`pthread_mutex_t`) per proteggere le sezioni critiche del codice.
--   **Chiusura Pulita del Server:** Per evitare la perdita di dati, è stato implementato un meccanismo che intercetta il segnale `SIGINT` (Ctrl+C) e, tramite `atexit()`, assicura che lo stato corrente venga salvato su disco prima della terminazione.
-
-### Funzionalità future
-
--   **Sicurezza Avanzata:** Integrare algoritmi di hashing più avanzati.
--   **Funzionalità Utente:** Aggiungere la possibilità di modificare i propri messaggi, inviare messaggi privati e creare profili utente più dettagliati.
--   **Robustezza:** Implementare un sistema di journaling per garantire la durabilità dei dati.
+# 🇬🇧 **English Version**
 
 ---
 
-## Come installare ed eseguire il progetto
+## 🎯 **Project Overview**
 
-Di seguito sono riportate le istruzioni passo-passo per compilare ed eseguire l'applicazione.
-*(Prerequisito: un sistema operativo POSIX-compatibile, gcc compiler)*.
-
-### Compilazione
-
-1.  Clona il repository 
-    ```
-    git clone https://github.com/Marcoos4/Progetto-Bacheca-SO.git
-    ```
-2. posizionati nella directory `src` del progetto
-    ```
-    cd src
-    ```
-4.  Esegui il comando `make all` dalla directory principale (`src`).
-    ```
-    make all
-    ```
-    Questo comando compilerà tutti i sorgenti e creerà due file eseguibili: `server_executable` e `client_executable`.
-
-### Esecuzione
-
-L'applicazione richiede due terminali separati.
-
-1.  **Avvia il Server:**
-    Nel primo terminale, esegui:
-    ```
-    ./server_executable
-    ```
-    Il server si avvierà e stamperà il messaggio: `Server in ascolto sulla porta 8080`.
-
-2.  **Avvia il Client:**
-    Nel secondo terminale, esegui:
-    ```
-    ./client_executable
-    ```
-    Il client si connetterà al server locale. Per connettersi a un server remoto, usa: `./client_executable <indirizzo_ip>`.
+This project implements a concurrent multi-client electronic board where users can register, authenticate, read, post, and delete messages in a shared environment.
+Developed entirely in **C**, it uses **TCP/IP sockets**, a **custom thread pool**, and **file-based persistence** to ensure durability across executions.
+It runs on all **POSIX-compatible systems**.
 
 ---
 
-## Come usare il progetto
+## ⚙️ **Repository Structure**
 
-### Flusso di Lavoro Tipico
+| File             | Description                                              |
+| ---------------- | -------------------------------------------------------- |
+| `server.c`       | Server logic: connections, login system, message storage |
+| `client.c`       | Command-line interface for interacting with the board    |
+| `threadpool.c/h` | Custom thread pool for concurrency                       |
+| `utils.c/h`      | Utility functions for networking and synchronization     |
+| `Makefile`       | Builds server and client executables                     |
+| `README.md`      | Project documentation                                    |
 
-Il modo più semplice per iniziare è registrare un nuovo utente, accedere e iniziare a interagire con la bacheca.
+---
 
-### Interfaccia Client
+## 🧩 **Architecture Overview**
 
-L'interazione avviene tramite un'interfaccia a menu testuale.
+### 📦 Memory & Persistence
 
-**1. Menu Iniziale (non autenticato)**
-Appena connesso, vedrai questo menu:
+* All messages and user data are stored in **text files**, ensuring persistence.
+* Server state is preserved through graceful shutdown.
+
+### 🧵 Thread Pool
+
+* A fixed number of worker threads manage tasks concurrently.
+* This avoids the inefficient “one thread per client” model.
+
+### 🌐 Network Communication
+
+* Uses reliable **TCP/IP sockets**
+* Custom `send_all()` and `recv_all()` ensure complete data transfer
+* Default server port: **8080**
+
+---
+
+## 🗺️ **Main Components**
+
+### 🖥️ **1. Server**
+
+* Accepts client connections
+* Authenticates/registers users
+* Stores and retrieves messages
+* Protects shared resources using mutexes
+
+### 💬 **2. Client**
+
+* Text-based menu-driven UI
+* Reads/posts/deletes messages
+* Connects to a local or remote server
+
+### 🧵 **3. Thread Pool**
+
+* Fixed-size set of worker threads
+* Efficient scheduling of client tasks
+
+### 💾 **4. Persistent Storage**
+
+* Messages saved in chronological order
+* User data saved in dedicated files
+
+---
+
+## 🧮 **Functional Logic**
+
+### 🏗️ Message Posting
+
+Client sends text → server stores it chronologically.
+
+### 📜 Reading Messages
+
+Client fetches entire message list.
+
+### 🗑️ Message Deletion
+
+Users may delete **only their own** messages.
+
+### 🔐 Authentication
+
+Simple and secure login system using username and password.
+
+---
+
+## ⚡ **Optimization Strategies**
+
+* Thread pool improves scalability
+* Compact I/O routines reduce network overhead
+* Mutexes eliminate race conditions
+* File persistence ensures durability
+
+---
+
+## 🧪 **Testing**
+
+The system has been validated for:
+
+1. Concurrent clients
+2. Stress-level posting/deleting
+3. Clean server shutdown
+4. Persistence correctness
+
+Run with:
+
+```bash
+make
+./server_executable
+./client_executable
+```
+
+---
+
+## 🧱 **Example Client Interface**
+
+```
+--- Main Menu ---
+1. Register
+2. Log in
+3. Exit
+```
+
+```
+--- Board ---
+1. View messages
+2. Send a message
+3. Delete a message
+4. Exit
+```
+
+---
+
+## 🧑‍💻 **Authors & Acknowledgements**
+
+Developed for the **Operating Systems course**, focusing on concurrency, networking, and persistent storage.
+
+---
+
+**License:** MIT
+**Language:** C (POSIX)
+**Concurrency:** Thread Pool
+**Protocol:** TCP/IP
+
+---
+
+# 🇮🇹 **Versione Italiana**
+
+---
+
+## 🎯 **Descrizione del Progetto**
+
+Questo progetto implementa una bacheca elettronica multi-utente con supporto alla concorrenza, che permette di registrarsi, autenticarsi, leggere, pubblicare e cancellare messaggi in un ambiente condiviso.
+Realizzato interamente in **C**, utilizza **socket TCP/IP**, un **thread pool personalizzato**, e un sistema di **persistenza tramite file di testo**.
+Compatibile con tutti i sistemi **POSIX**.
+
+---
+
+## ⚙️ **Struttura del Repository**
+
+| File             | Descrizione                                                           |
+| ---------------- | --------------------------------------------------------------------- |
+| `server.c`       | Implementazione del server (connessioni, autenticazione, persistenza) |
+| `client.c`       | Interfaccia testuale per gli utenti                                   |
+| `threadpool.c/h` | Thread pool per la gestione concorrente delle richieste               |
+| `utils.c/h`      | Funzioni di supporto per rete e sincronizzazione                      |
+| `Makefile`       | Compila il progetto                                                   |
+| `README.md`      | Documentazione                                                        |
+
+---
+
+## 🧩 **Architettura del Sistema**
+
+### 📦 Memoria e Persistenza
+
+* Tutti i messaggi e i dati utente sono salvati in **file di testo**.
+* Lo stato del server è sempre coerente grazie alla chiusura pulita.
+
+### 🧵 Thread Pool
+
+* Un numero fisso di thread gestisce le richieste dei client.
+* Approccio più efficiente rispetto a un thread per client.
+
+### 🌐 Comunicazione di Rete
+
+* Basata su **socket TCP**
+* Funzioni `send_all()` e `recv_all()` garantiscono trasferimenti completi
+* Porta di default del server: **8080**
+
+---
+
+## 🗺️ **Componenti Principali**
+
+### 🖥️ **1. Server**
+
+* Gestisce connessioni
+* Registra/autentica utenti
+* Memorizza i messaggi
+* Usa mutex per proteggere risorse critiche
+
+### 💬 **2. Client**
+
+* Interfaccia a menu semplice e intuitiva
+* Visualizza/invia/cancella messaggi
+* Connessione locale o remota
+
+### 🧵 **3. Thread Pool**
+
+* Gestione efficiente delle richieste concorrenti
+
+### 💾 **4. Persistenza**
+
+* Messaggi salvati in ordine cronologico
+* Dati utente salvati separatamente
+
+---
+
+## 🧮 **Funzionamento**
+
+### 🏗️ Pubblicazione dei Messaggi
+
+Gli utenti inviano messaggi che vengono salvati in ordine cronologico.
+
+### 📜 Lettura dei Messaggi
+
+I client possono visualizzare la bacheca completa.
+
+### 🗑️ Eliminazione
+
+Un utente può eliminare **solo i propri** messaggi.
+
+### 🔐 Autenticazione
+
+Sistema basato su username e password.
+
+---
+
+## ⚡ **Strategie di Ottimizzazione**
+
+* Thread pool per maggiore scalabilità
+* Persistenza tramite file semplice e robusta
+* Comunicazione ottimizzata tramite funzioni dedicate
+* Mutex per evitare race condition
+
+---
+
+## 🧪 **Test e Validazione**
+
+Il sistema è stato testato per:
+
+1. Connessioni simultanee
+2. Stress test di pubblicazione/cancellazione
+3. Chiusura pulita del server
+4. Correttezza della persistenza
+
+Esecuzione:
+
+```bash
+make
+./server_executable
+./client_executable
+```
+
+---
+
+## 🧱 **Esempio Interfaccia Client**
+
 ```
 --- Menu Principale ---
 1. Registrati
 2. Accedi
 3. Esci
-Scelta:
 ```
 
-**2. Menu Bacheca (dopo il login)**
-Una volta effettuato l'accesso, il menu si trasformerà:
 ```
 --- Bacheca ---
 1. Visualizza messaggi
 2. Invia un messaggio
 3. Cancella un messaggio
-4. Esci dal programma
-Scelta:
+4. Esci
 ```
+
+---
+
+## 🧑‍💻 **Autori e Riconoscimenti**
+
+Sviluppato per il corso di **Sistemi Operativi**, con focus su concorrenza, programmazione di rete e gestione persistente dei dati.
+
+---
+
+**Licenza:** MIT
+**Linguaggio:** C (POSIX)
+**Concorrenza:** Thread Pool
+**Protocollo:** TCP/IP
+
 
 
 
