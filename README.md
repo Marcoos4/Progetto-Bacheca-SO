@@ -302,11 +302,9 @@ Sviluppato per il corso di **Sistemi Operativi**, con focus su concorrenza, prog
 
 ---
 
-**Licenza:** MIT
-**Linguaggio:** C (POSIX)
-**Concorrenza:** Thread Pool
+**Licenza:** MIT  
+**Linguaggio:** C(POSIX)  
 **Protocollo:** TCP/IP
-
 
 
 
